@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>H-IoT Blockchain Security | PBL 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #04070f;
+    --surface: #0a0f1e;
+    --card: #0e1528;
+    --border: #1a2540;
+    --accent: #00e5ff;
+    --accent2: #7b61ff;
+    --accent3: #ff4d6d;
+    --text: #e8eaf6;
+    --muted: #7986a3;
+    --green: #00e676;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* --- NOISE OVERLAY --- */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* --- GRID BACKGROUND --- */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* --- NAV --- */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2.5rem;
+    height: 60px;
+    background: rgba(4,7,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--accent); }
+
+  .nav-timer {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  /* --- SECTIONS --- */
+  section {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 7rem 2.5rem 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* --- HERO --- */
+  #hero {
+    min-height: 100vh;
+    max-width: 100%;
+    padding: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.12;
+    pointer-events: none;
+  }
+
+  .glow-cyan { background: var(--accent); top: -100px; left: 20%; }
+  .glow-purple { background: var(--accent2); bottom: -100px; right: 20%; }
+
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    padding: 2rem;
+    animation: fadeUp 0.9s ease both;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 999px;
+    padding: 0.4rem 1rem;
+    margin-bottom: 2rem;
+    background: rgba(0,229,255,0.05);
+  }
+
+  .hero-badge .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 2s infinite;
+  }
+
+  .hero-logo {
+    width: 70px;
+    height: 70px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: #fff;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 0 30px rgba(0,229,255,0.2);
+  }
+
+  .hero-dept {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  h1.hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    max-width: 900px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #fff 40%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 680px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+  }
+
+  .hero-nav-links {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    padding: 0.7rem 1.6rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #04070f;
+    font-weight: 600;
+  }
+
+  .btn-primary:hover { background: #33ecff; box-shadow: 0 0 20px rgba(0,229,255,0.4); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* --- SECTION COMMON --- */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.8rem;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.15;
+  }
+
+  .section-desc {
+    color: var(--muted);
+    max-width: 680px;
+    line-height: 1.75;
+    font-size: 0.97rem;
+    margin-bottom: 2.5rem;
+  }
+
+  /* --- PROBLEM STATEMENT --- */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .attack-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.4rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .attack-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .attack-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent-color, var(--accent));
+  }
+
+  .attack-card.mitm { --accent-color: #00e5ff; }
+  .attack-card.ddos { --accent-color: #ff4d6d; }
+  .attack-card.breach { --accent-color: #7b61ff; }
+  .attack-card.replay { --accent-color: #00e676; }
+
+  .attack-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .attack-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: var(--accent-color, var(--accent));
+  }
+
+  .attack-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 0.8rem;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    margin-top: 0.3rem;
+  }
+
+  .problem-box {
+    background: linear-gradient(135deg, rgba(123,97,255,0.08), rgba(0,229,255,0.06));
+    border: 1px solid rgba(123,97,255,0.3);
+    border-radius: 14px;
+    padding: 2rem;
+  }
+
+  .problem-box p {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    color: #c5cae9;
+  }
+
+  /* --- LITERATURE SURVEY --- */
+  .lit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .lit-table th {
+    background: var(--card);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 0.9rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .lit-table td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .lit-table tr:last-child td { border-bottom: none; }
+  .lit-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .lit-table td:first-child {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.82rem;
+  }
+
+  /* --- METHODOLOGY --- */
+  .arch-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 2rem 0;
+    position: relative;
+  }
+
+  .arch-layer {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-radius: 0;
+    overflow: hidden;
+    background: var(--card);
+    transition: border-color 0.2s;
+    position: relative;
+  }
+
+  .arch-layer:first-child { border-radius: 12px 12px 0 0; }
+  .arch-layer:last-child { border-radius: 0 0 12px 12px; }
+  .arch-layer:not(:last-child) { border-bottom: none; }
+
+  .arch-layer:hover { border-color: var(--accent); z-index: 1; }
+
+  .layer-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    flex-shrink: 0;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    color: var(--layer-color, var(--accent));
+    background: rgba(255,255,255,0.03);
+    border-right: 1px solid var(--border);
+  }
+
+  .layer-body {
+    padding: 1.2rem 1.5rem;
+    flex: 1;
+  }
+
+  .layer-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.92rem;
+    color: var(--layer-color, var(--accent));
+    margin-bottom: 0.3rem;
+  }
+
+  .layer-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .layer-tags { margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    margin-top: 2rem;
+  }
+
+  .tech-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .tech-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
+
+  .tech-card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--accent2);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tech-card p {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* --- RESULTS --- */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .metric-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.8rem 1.4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--m-color, var(--accent));
+  }
+
+  .metric-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--m-color, var(--accent));
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .metric-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    font-size: 0.82rem;
+  }
+
+  .comparison-table th {
+    background: rgba(0,229,255,0.07);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 0.8rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .comparison-table td {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid rgba(26,37,64,0.6);
+    color: var(--muted);
+  }
+
+  .comparison-table tr:last-child td { border-bottom: none; }
+  .comparison-table td:first-child { color: var(--text); font-weight: 500; }
+
+  .check { color: var(--green); font-size: 1rem; }
+  .cross { color: var(--accent3); font-size: 1rem; }
+
+  /* --- TEAM --- */
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1rem;
+  }
+
+  .team-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.8rem 1.2rem;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .team-card:hover { border-color: var(--accent2); transform: translateY(-3px); }
+
+  .team-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.4rem;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: #fff;
+  }
+
+  .team-role {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .team-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .team-reg {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* --- FOOTER --- */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* --- ANIMATIONS --- */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* --- DIVIDER --- */
+  .section-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 2rem 0;
+  }
+
+  /* --- OBJECTIVES LIST --- */
+  .obj-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin-top: 1.5rem;
+  }
+
+  .obj-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .obj-num {
+    flex-shrink: 0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--accent);
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav { padding: 0 1.2rem; }
+    .nav-links { display: none; }
+    section { padding: 6rem 1.2rem 3rem; }
+    .lit-table { font-size: 0.75rem; }
+    .lit-table th, .lit-table td { padding: 0.7rem 0.6rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">MUJ · CSE · PBL-I · 2026</div>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#literature">Literature</a></li>
+    <li><a href="#methodology">Methodology</a></li>
+    <li><a href="#results">Results</a></li>
+    <li><a href="#team">Team</a></li>
+  </ul>
+  <div class="nav-timer" id="timer">00:00</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow glow-cyan"></div>
+  <div class="hero-glow glow-purple"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">
+      <span class="dot"></span>
+      PBL-I Report · Manipal University Jaipur
+    </div>
+    <div class="hero-logo">M</div>
+    <p class="hero-dept">Department of Computer Science & Engineering · School of CSE</p>
+    <h1 class="hero-title">Different Security Attacks in Healthcare IoT and Blockchain-Based Mitigation</h1>
+    <p class="hero-sub">A comprehensive study of cybersecurity threats in H-IoT ecosystems—MITM, DDoS, Data Breaches, and Replay Attacks—and how Blockchain technology provides a decentralized, intelligent defense framework.</p>
+    <div class="hero-nav-links">
+      <a href="#problem" class="btn btn-primary">↓ Explore Research</a>
+      <a href="#results" class="btn btn-ghost">View Results</a>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM STATEMENT -->
+<section id="problem">
+  <div class="fade-in">
+    <p class="section-label">Section I + IV</p>
+    <h2 class="section-title">The Problem: H-IoT Under Attack</h2>
+    <p class="section-desc">Healthcare IoT devices—from insulin pumps to remote ECG monitors—operate under severe resource constraints on centralized architectures, creating exploitable attack surfaces that directly threaten patient lives.</p>
+
+    <div class="problem-grid">
+      <div class="attack-card mitm">
+        <div class="attack-icon">🔐</div>
+        <div class="attack-name">Man-in-the-Middle (MITM)</div>
+        <div class="attack-desc">Intercepts communication between H-IoT devices and servers, enabling data manipulation, eavesdropping, and unauthorized command injection.</div>
+        <span class="tag">Data in Transit</span>
+        <span class="tag">Glucose Monitors</span>
+      </div>
+      <div class="attack-card ddos">
+        <div class="attack-icon">🌊</div>
+        <div class="attack-name">Distributed Denial-of-Service</div>
+        <div class="attack-desc">Floods hospital networks and cloud servers, disrupting EHR access, remote monitoring, and delaying critical diagnoses.</div>
+        <span class="tag">Network Availability</span>
+        <span class="tag">Cloud Infra</span>
+      </div>
+      <div class="attack-card breach">
+        <div class="attack-icon">🗄️</div>
+        <div class="attack-name">Data Breaches & Tampering</div>
+        <div class="attack-desc">Unauthorized access to centralized EHR databases leads to identity theft, insurance fraud, and manipulation of medical histories.</div>
+        <span class="tag">EHR Databases</span>
+        <span class="tag">Patient Records</span>
+      </div>
+      <div class="attack-card replay">
+        <div class="attack-icon">🔁</div>
+        <div class="attack-name">Replay Attacks</div>
+        <div class="attack-desc">Retransmits intercepted commands to implantable devices (e.g., insulin pumps), triggering unauthorized medical interventions.</div>
+        <span class="tag">Device Commands</span>
+        <span class="tag">IMDs</span>
+      </div>
+    </div>
+
+    <div class="problem-box">
+      <p class="section-label" style="margin-bottom:0.5rem">Core Problem Statement</p>
+      <p>The critical vulnerability of centralized H-IoT systems to sophisticated cyberattacks—MITM, DDoS, Data Breaches, and Replay Attacks—compromises the confidentiality and integrity of sensitive EHRs and poses a direct, life-threatening risk to patient safety through unauthorized manipulation of medical devices. This vulnerability is exacerbated by resource constraints and the single point of failure inherent in traditional centralized architectures, necessitating a decentralized, robust, and intelligent blockchain-based security framework.</p>
+    </div>
+  </div>
+</section>
+
+<!-- LITERATURE SURVEY -->
+<section id="literature">
+  <div class="fade-in">
+    <p class="section-label">Section II + III</p>
+    <h2 class="section-title">Literature Survey & Comparative Analysis</h2>
+    <p class="section-desc">A review of six blockchain-based frameworks reveals a growing consensus: decentralized architectures, combined with ML and smart contracts, outperform traditional centralized security models.</p>
+
+    <table class="lit-table" style="margin-bottom: 2rem;">
+      <thead>
+        <tr>
+          <th>Framework</th>
+          <th>Focus</th>
+          <th>Blockchain Type</th>
+          <th>Key Feature</th>
+          <th>Tradeoff</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>RBAC with PoA [C1]</td>
+          <td>Access Control</td>
+          <td>Permissioned</td>
+          <td>Smart Contract enforcement, high throughput</td>
+          <td>Relies on trusted authority nodes</td>
+        </tr>
+        <tr>
+          <td>ABAC on Blockchain [C9]</td>
+          <td>Fine-grained Access</td>
+          <td>Permissioned/Public</td>
+          <td>Attribute-based flexible policies</td>
+          <td>High computational overhead</td>
+        </tr>
+        <tr>
+          <td>IPFS & Blockchain [C10]</td>
+          <td>Storage Scalability</td>
+          <td>Permissioned/Public</td>
+          <td>Off-chain EHR storage, on-chain hash</td>
+          <td>IPFS dependency; retrieval latency</td>
+        </tr>
+        <tr>
+          <td>Hybrid AI + BC IDS [C12]</td>
+          <td>Intrusion Detection</td>
+          <td>Permissioned</td>
+          <td>Tamper-proof logs, ML-based detection</td>
+          <td>High AI computational cost</td>
+        </tr>
+        <tr>
+          <td>Dual-Channel BC [C13]</td>
+          <td>Privacy & Scalability</td>
+          <td>Dual (Private/Public)</td>
+          <td>Separate data & access channels</td>
+          <td>Complex cross-chain communication</td>
+        </tr>
+        <tr>
+          <td>Lightweight DLT [C14]</td>
+          <td>Resource-Constrained</td>
+          <td>Permissioned (IOTA)</td>
+          <td>Low overhead for IMDs/wearables</td>
+          <td>Reduced decentralization strength</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="section-label" style="margin-bottom:0.6rem;">Research Gap</p>
+    <div class="problem-box">
+      <p>No single framework combines all three pillars—lightweight encryption suitable for resource-constrained devices, smart contract–enforced RBAC, and a blockchain-integrated ML model for real-time attack detection—within a unified PoA permissioned architecture. This project addresses that gap by proposing an integrated solution validated against the WUSTL-EHMS-2020 dataset.</p>
+    </div>
+  </div>
+</section>
+
+<!-- METHODOLOGY -->
+<section id="methodology">
+  <div class="fade-in">
+    <p class="section-label">Section V + VI</p>
+    <h2 class="section-title">Proposed Framework & Methodology</h2>
+    <p class="section-desc">A four-layered blockchain-based security architecture that combines XChaCha20 encryption, PoA consensus, smart contract RBAC, and an ML-powered intrusion detection system.</p>
+
+    <p style="font-family:'DM Mono',monospace; font-size:0.72rem; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.8rem;">Framework Architecture — 4 Layers</p>
+
+    <div class="arch-layers">
+      <div class="arch-layer" style="--layer-color:#00e676;">
+        <div class="layer-num" style="--layer-color:#00e676;">1</div>
+        <div class="layer-body">
+          <div class="layer-name">IoT Data Collection Layer</div>
+          <div class="layer-desc">Wearables, implantable medical devices (insulin pumps, pacemakers), hospital sensors (smart beds, infusion pumps). Responsible for initial patient data acquisition and secure transmission.</div>
+          <div class="layer-tags">
+            <span class="tag">Wearables</span><span class="tag">IMDs</span><span class="tag">Hospital Sensors</span>
+          </div>
+        </div>
+      </div>
+      <div class="arch-layer" style="--layer-color:#00e5ff;">
+        <div class="layer-num" style="--layer-color:#00e5ff;">2</div>
+        <div class="layer-body">
+          <div class="layer-name">Encryption Layer — XChaCha20</div>
+          <div class="layer-desc">Data is immediately encrypted using XChaCha20, a lightweight 256-bit cipher with a 192-bit nonce. Selected for its superior speed (0.61s encryption) and suitability for low-power devices.</div>
+          <div class="layer-tags">
+            <span class="tag">256-bit Key</span><span class="tag">192-bit Nonce</span><span class="tag">Lightweight</span>
+          </div>
+        </div>
+      </div>
+      <div class="arch-layer" style="--layer-color:#7b61ff;">
+        <div class="layer-num" style="--layer-color:#7b61ff;">3</div>
+        <div class="layer-body">
+          <div class="layer-name">Blockchain Layer — PoA Consensus + RBAC Smart Contracts</div>
+          <div class="layer-desc">Permissioned blockchain using Proof of Authority (PoA). Trusted validator nodes (hospitals, regulatory bodies) validate transactions. Smart contracts enforce RBAC policies, manage device registration, and log all access attempts immutably.</div>
+          <div class="layer-tags">
+            <span class="tag">PoA Consensus</span><span class="tag">RBAC Smart Contracts</span><span class="tag">Immutable Log</span><span class="tag">Hyperledger / Ethereum</span>
+          </div>
+        </div>
+      </div>
+      <div class="arch-layer" style="--layer-color:#ff4d6d;">
+        <div class="layer-num" style="--layer-color:#ff4d6d;">4</div>
+        <div class="layer-body">
+          <div class="layer-name">Application & ML Layer — Real-time Attack Detection</div>
+          <div class="layer-desc">Doctor dashboards and patient portals interface here. An ML model (Random Forest / CNN-LSTM) trained on WUSTL-EHMS-2020 dataset detects anomalies in real time. Detection results are written as immutable blockchain transactions.</div>
+          <div class="layer-tags">
+            <span class="tag">Random Forest</span><span class="tag">CNN-LSTM</span><span class="tag">WUSTL-EHMS-2020</span><span class="tag">99.43% Accuracy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-card-title">⚡ XChaCha20 Encryption</div>
+        <p>Stream cipher selected for its high speed and low overhead. Uses a 256-bit key and 192-bit nonce, providing brute-force resistance. Achieves ~0.61s encryption and ~0.71s decryption on simulated H-IoT devices—well within real-time requirements.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-title">🔒 RBAC via Smart Contracts</div>
+        <p>Every user is assigned a role (Patient, Nurse, Specialist Doctor). Smart contracts autonomously verify role-data policy matches before releasing decryption keys. Decentralized enforcement eliminates the risk of a compromised central administrator.</p>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-title">🧠 ML-Integrated IDS</div>
+        <p>Continuous analysis of network traffic for anomalies indicative of MITM, DDoS, or Replay attacks. High-confidence detections are immediately written to the blockchain—creating a cryptographically verifiable, tamper-proof security audit trail.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section id="results">
+  <div class="fade-in">
+    <p class="section-label">Section VI.4 — Expected Outcomes</p>
+    <h2 class="section-title">Results & Analysis</h2>
+    <p class="section-desc">Performance benchmarks are modeled on comparable literature [C1, C12]. The framework targets superior results across all four key metrics.</p>
+
+    <div class="metrics-grid">
+      <div class="metric-card" style="--m-color:#00e5ff;">
+        <div class="metric-value">&gt;99%</div>
+        <div class="metric-label">Attack Detection Accuracy</div>
+      </div>
+      <div class="metric-card" style="--m-color:#00e676;">
+        <div class="metric-value">&lt;1s</div>
+        <div class="metric-label">Encryption / Decryption Latency</div>
+      </div>
+      <div class="metric-card" style="--m-color:#7b61ff;">
+        <div class="metric-value">PoA</div>
+        <div class="metric-label">Consensus: High Throughput</div>
+      </div>
+      <div class="metric-card" style="--m-color:#ff4d6d;">
+        <div class="metric-value">4</div>
+        <div class="metric-label">Attack Types Fully Mitigated</div>
+      </div>
+    </div>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Attack</th>
+          <th>Traditional Approach</th>
+          <th>Proposed Framework</th>
+          <th>Immutable Log</th>
+          <th>Real-time Detection</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>MITM</td>
+          <td>TLS/SSL (vulnerable to cert spoofing)</td>
+          <td>XChaCha20 + BC Authentication</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td>DDoS</td>
+          <td>Firewalls (single point of failure)</td>
+          <td>Decentralized PoA Nodes</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td>Data Breach</td>
+          <td>ACLs on central DB (insider threat)</td>
+          <td>RBAC Smart Contracts + Immutability</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+        </tr>
+        <tr>
+          <td>Replay</td>
+          <td>Nonces (hard on low-power devices)</td>
+          <td>BC Sequence Ledger + ML Detection</td>
+          <td class="check">✓</td>
+          <td class="check">✓</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="fade-in">
+    <p class="section-label">Academic Credits</p>
+    <h2 class="section-title">Team & Supervision</h2>
+
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-avatar" style="background: linear-gradient(135deg,#ff4d6d,#7b61ff);">UJ</div>
+        <div class="team-role">Project Guide</div>
+        <div class="team-name">Prof. Usha Jain</div>
+        <div class="team-reg">Supervisor</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">HS</div>
+        <div class="team-role">Student</div>
+        <div class="team-name">Hridyansh Shukla</div>
+        <div class="team-reg">2427030591</div>
+      </div>
+    </div>
+
+    <div class="section-divider" style="margin-top:3rem;"></div>
+    <p class="section-label" style="margin-top:2rem;">Objectives Summary</p>
+    <ul class="obj-list">
+      <li><span class="obj-num">01</span> Systematically classify and analyze MITM, DDoS, Data Breach, and Replay attack vectors with impact on patient safety.</li>
+      <li><span class="obj-num">02</span> Design a multi-layered blockchain security architecture using PoA consensus for high performance and accountability.</li>
+      <li><span class="obj-num">03</span> Integrate XChaCha20 encryption, RBAC smart contracts, and a blockchain-connected ML model for real-time detection.</li>
+      <li><span class="obj-num">04</span> Quantitatively evaluate mitigation effectiveness—targeting &gt;99% detection accuracy and &lt;1s encryption latency—against state-of-the-art baselines.</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  Manipal University Jaipur · Department of Computer Science & Engineering · PBL-I 2025–2026 · H-IoT Blockchain Security Framework
+</footer>
+
+<script>
+  // --- TIMER ---
+  const timerEl = document.getElementById('timer');
+  let seconds = 0;
+  setInterval(() => {
+    seconds++;
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+    const s = String(seconds % 60).padStart(2, '0');
+    timerEl.textContent = `${m}:${s}`;
+  }, 1000);
+
+  // --- SCROLL FADE-IN ---
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
